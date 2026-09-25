@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.vite/
+*.log
+.DS_Store
+# 隐私与本地配置
+.claude/
+.env
+.env.*
+*.pem
+*.key
