@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "chart.js": "^4.4.4",
+    "lucide": "^1.48.0",
     "three": "^0.169.0"
   },
   "devDependencies": {

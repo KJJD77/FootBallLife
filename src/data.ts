@@ -1,4 +1,4 @@
-import type { Club, League, Nation } from './types';
+import type { Club, League, Nation, Pos } from './types';
 
 export const LEAGUES: League[] = [
   { id: 'ENG', cup: '足总杯', name: '英格兰超级联赛', short: '英超', cont: '欧洲冠军联赛', strength: 80 },
@@ -113,6 +113,17 @@ export const NATIONS: Nation[] = [
   { id: 'ITA', name: '意大利', strength: 84, cup: '欧洲杯', colors: ['#0066cc', '#ffffff'] },
   { id: 'JPN', name: '日本', strength: 74, cup: '亚洲杯', colors: ['#000080', '#ffffff'] },
   { id: 'KOR', name: '韩国', strength: 72, cup: '亚洲杯', colors: ['#c60c30', '#ffffff'] },
+  { id: 'BEL', name: '比利时', strength: 84, cup: '欧洲杯', colors: ['#111111', '#f2c500'] },
+  { id: 'EGY', name: '埃及', strength: 72, cup: '非洲杯', colors: ['#ce1126', '#ffffff'] },
+  { id: 'COL', name: '哥伦比亚', strength: 80, cup: '美洲杯', colors: ['#fcd116', '#003893'] },
+  { id: 'HUN', name: '匈牙利', strength: 76, cup: '欧洲杯', colors: ['#ce2939', '#ffffff'] },
+  { id: 'POL', name: '波兰', strength: 78, cup: '欧洲杯', colors: ['#ffffff', '#dc143c'] },
+  { id: 'URU', name: '乌拉圭', strength: 82, cup: '美洲杯', colors: ['#5ca9d6', '#ffffff'] },
+  { id: 'CAN', name: '加拿大', strength: 74, cup: '美洲杯', colors: ['#d80621', '#ffffff'] },
+  { id: 'MAR', name: '摩洛哥', strength: 80, cup: '非洲杯', colors: ['#c1272d', '#006233'] },
+  { id: 'ARM', name: '亚美尼亚', strength: 64, cup: '欧洲杯', colors: ['#d90012', '#0033a0'] },
+  { id: 'USA', name: '美国', strength: 76, cup: '美洲杯', colors: ['#b22234', '#3c3b6e'] },
+  { id: 'SRB', name: '塞尔维亚', strength: 77, cup: '欧洲杯', colors: ['#c6363c', '#0c4076'] },
 ];
 
 export const SURNAMES = '李王张刘陈杨赵黄周吴徐孙马朱胡郭何高林罗郑梁谢宋唐韩冯于董萧程曹袁邓许傅沈曾彭吕苏卢蒋蔡贾丁魏薛叶阎余潘杜戴夏钟汪田任姜范方石姚谭廖邹熊金陆郝孔白崔康毛邱秦江史顾侯邵孟龙万段雷钱汤尹黎易常武乔贺赖龚文'.split('');
@@ -150,3 +161,121 @@ export const MEDIA: Record<string, string[]> = {
   ASI: ['亚足联官网', '《体坛周报》'],
 };
 export const PARTNER_NAMES = ['林小雨', '苏菲亚', '陈可欣', '艾玛', '伊莎贝拉', '王思琪', '露西亚', '佐藤由奈', '米娅', '赵婉清', '克拉拉', '周子涵'];
+
+export interface RosterSeed {
+  name: string;
+  number: number;
+  pos: Pos;
+  nation: string;
+  ovr: number;
+  role: '队长' | '核心' | '主力' | '轮换' | '青训';
+  note: string;
+}
+
+/** 2025/26 赛季的可辨认一线队名单。其余球队使用同一套真实球员池补齐。 */
+export const REAL_ROSTERS: Record<string, RosterSeed[]> = {
+  mci: [
+    { name: '哈兰德', number: 9, pos: 'ST', nation: 'NED', ovr: 91, role: '核心', note: '禁区里最早到位的人' },
+    { name: '德布劳内', number: 17, pos: 'AM', nation: 'BEL', ovr: 88, role: '核心', note: '一脚传球能改变比赛' },
+    { name: '罗德里', number: 16, pos: 'CM', nation: 'ESP', ovr: 90, role: '队长', note: '把节奏握在脚下' },
+    { name: '福登', number: 47, pos: 'WG', nation: 'ENG', ovr: 87, role: '主力', note: '从青训楼一路走到主场灯光下' },
+    { name: '鲁本·迪亚斯', number: 3, pos: 'CB', nation: 'POR', ovr: 87, role: '主力', note: '后防线的声音' },
+    { name: '贝尔纳多·席尔瓦', number: 20, pos: 'AM', nation: 'POR', ovr: 88, role: '主力', note: '小空间里的魔术师' },
+  ],
+  liv: [
+    { name: '萨拉赫', number: 11, pos: 'WG', nation: 'EGY', ovr: 89, role: '核心', note: '右路一拿球，看台就会起身' },
+    { name: '范戴克', number: 4, pos: 'CB', nation: 'NED', ovr: 89, role: '队长', note: '安菲尔德的定海神针' },
+    { name: '阿利松', number: 1, pos: 'CB', nation: 'BRA', ovr: 89, role: '主力', note: '最后一道防线，也能发起进攻' },
+    { name: '麦卡利斯特', number: 10, pos: 'CM', nation: 'ARG', ovr: 86, role: '主力', note: '把脏活做得很漂亮' },
+    { name: '索博斯洛伊', number: 8, pos: 'CM', nation: 'HUN', ovr: 84, role: '主力', note: '跑动永远比比赛多一步' },
+    { name: '路易斯·迪亚斯', number: 7, pos: 'WG', nation: 'COL', ovr: 85, role: '主力', note: '边线附近不肯停下的人' },
+  ],
+  ars: [
+    { name: '萨卡', number: 7, pos: 'WG', nation: 'ENG', ovr: 86, role: '核心', note: '海布里的孩子，左脚很安静' },
+    { name: '厄德高', number: 8, pos: 'AM', nation: 'NED', ovr: 87, role: '队长', note: '抬头之前，答案已经在脚下' },
+    { name: '赖斯', number: 41, pos: 'CM', nation: 'ENG', ovr: 86, role: '主力', note: '把中场每一块草皮都跑过' },
+    { name: '萨利巴', number: 2, pos: 'CB', nation: 'FRA', ovr: 86, role: '主力', note: '防线最年轻的安静大个子' },
+    { name: '马丁内利', number: 11, pos: 'WG', nation: 'BRA', ovr: 83, role: '主力', note: '反击时像被风推着跑' },
+    { name: '热苏斯', number: 9, pos: 'ST', nation: 'BRA', ovr: 82, role: '轮换', note: '训练场上第一个到的人' },
+  ],
+  mun: [
+    { name: '布鲁诺·费尔南德斯', number: 8, pos: 'AM', nation: 'POR', ovr: 86, role: '队长', note: '每一次丢球都想马上追回来' },
+    { name: '卡塞米罗', number: 18, pos: 'CM', nation: 'BRA', ovr: 84, role: '主力', note: '知道什么时候该犯规' },
+    { name: '拉什福德', number: 10, pos: 'WG', nation: 'ENG', ovr: 83, role: '核心', note: '从社区球场走出来的孩子' },
+    { name: '梅努', number: 37, pos: 'CM', nation: 'ENG', ovr: 79, role: '主力', note: '老特拉福德的新声音' },
+    { name: '利桑德罗·马丁内斯', number: 6, pos: 'CB', nation: 'ARG', ovr: 84, role: '主力', note: '身高不是他的答案' },
+    { name: '霍伊伦', number: 11, pos: 'ST', nation: 'DEN', ovr: 80, role: '主力', note: '还在学会如何扛住一整座球场' },
+  ],
+  rma: [
+    { name: '姆巴佩', number: 9, pos: 'ST', nation: 'FRA', ovr: 92, role: '核心', note: '一旦启动，后卫只能回头' },
+    { name: '维尼修斯', number: 7, pos: 'WG', nation: 'BRA', ovr: 90, role: '核心', note: '边线是他最熟悉的朋友' },
+    { name: '贝林厄姆', number: 5, pos: 'AM', nation: 'ENG', ovr: 90, role: '核心', note: '关键时刻总会出现在镜头里' },
+    { name: '巴尔韦德', number: 15, pos: 'CM', nation: 'URU', ovr: 88, role: '主力', note: '像一台没有低电量提示的机器' },
+    { name: '吕迪格', number: 22, pos: 'CB', nation: 'GER', ovr: 86, role: '主力', note: '先把气势传给队友' },
+    { name: '库尔图瓦', number: 1, pos: 'CB', nation: 'BEL', ovr: 89, role: '主力', note: '球门在他身后变得很小' },
+  ],
+  bar: [
+    { name: '莱万多夫斯基', number: 9, pos: 'ST', nation: 'POL', ovr: 89, role: '核心', note: '禁区里的老派答案' },
+    { name: '拉菲尼亚', number: 11, pos: 'WG', nation: 'BRA', ovr: 85, role: '主力', note: '边路的每一步都带着火气' },
+    { name: '佩德里', number: 8, pos: 'CM', nation: 'ESP', ovr: 86, role: '核心', note: '停球时，时间会慢半拍' },
+    { name: '亚马尔', number: 19, pos: 'WG', nation: 'ESP', ovr: 86, role: '主力', note: '还没长大，已经敢要球' },
+    { name: '加维', number: 6, pos: 'CM', nation: 'ESP', ovr: 83, role: '主力', note: '每一次拼抢都像最后一次' },
+    { name: '阿劳霍', number: 4, pos: 'CB', nation: 'URU', ovr: 86, role: '队长', note: '后防线的门闩' },
+  ],
+  fcb: [
+    { name: '凯恩', number: 9, pos: 'ST', nation: 'ENG', ovr: 90, role: '核心', note: '禁区外也能把球送进角落' },
+    { name: '穆西亚拉', number: 42, pos: 'AM', nation: 'GER', ovr: 87, role: '核心', note: '在人缝里找到自己的路' },
+    { name: '基米希', number: 6, pos: 'CM', nation: 'GER', ovr: 86, role: '队长', note: '每个角落都有他的指令' },
+    { name: '戴维斯', number: 19, pos: 'WG', nation: 'CAN', ovr: 84, role: '主力', note: '从后场冲到前场只需要几秒' },
+    { name: '诺伊尔', number: 1, pos: 'CB', nation: 'GER', ovr: 86, role: '主力', note: '门将也可以是第十一名后卫' },
+    { name: '于帕梅卡诺', number: 2, pos: 'CB', nation: 'FRA', ovr: 84, role: '主力', note: '喜欢把危险挡在第一步' },
+  ],
+  psg: [
+    { name: '登贝莱', number: 10, pos: 'WG', nation: 'FRA', ovr: 86, role: '核心', note: '下一步永远猜不到' },
+    { name: '阿什拉夫', number: 2, pos: 'WG', nation: 'MAR', ovr: 85, role: '主力', note: '边后卫也想成为边锋' },
+    { name: '马尔基尼奥斯', number: 5, pos: 'CB', nation: 'BRA', ovr: 85, role: '队长', note: '巴黎夜色里的老队长' },
+    { name: '维蒂尼亚', number: 17, pos: 'CM', nation: 'POR', ovr: 85, role: '主力', note: '用小动作把大局面理顺' },
+    { name: '多纳鲁马', number: 1, pos: 'CB', nation: 'ITA', ovr: 86, role: '主力', note: '扑救前先看一眼队友' },
+    { name: '法比安·鲁伊斯', number: 8, pos: 'CM', nation: 'ESP', ovr: 82, role: '轮换', note: '左脚会把球送到很远的地方' },
+  ],
+  int: [
+    { name: '劳塔罗', number: 10, pos: 'ST', nation: 'ARG', ovr: 88, role: '队长', note: '禁区里总有第二次机会' },
+    { name: '巴雷拉', number: 23, pos: 'CM', nation: 'ITA', ovr: 86, role: '核心', note: '蓝黑色中场的心跳' },
+    { name: '巴斯托尼', number: 95, pos: 'CB', nation: 'ITA', ovr: 86, role: '主力', note: '左脚长传像一扇打开的门' },
+    { name: '恰尔汗奥卢', number: 20, pos: 'CM', nation: 'TUR', ovr: 86, role: '主力', note: '任意球之前总是很安静' },
+    { name: '姆希塔良', number: 22, pos: 'AM', nation: 'ARM', ovr: 82, role: '轮换', note: '知道什么时候该慢下来' },
+    { name: '邓弗里斯', number: 2, pos: 'WG', nation: 'NED', ovr: 83, role: '主力', note: '把右路跑成了自己的走廊' },
+  ],
+  mil: [
+    { name: '莱奥', number: 10, pos: 'WG', nation: 'POR', ovr: 87, role: '核心', note: '米兰的风从左边吹来' },
+    { name: '普利西奇', number: 11, pos: 'WG', nation: 'USA', ovr: 84, role: '主力', note: '在禁区前沿保持耐心' },
+    { name: '特奥', number: 19, pos: 'WG', nation: 'FRA', ovr: 86, role: '主力', note: '后场出发，前场结束' },
+    { name: '迈尼昂', number: 16, pos: 'CB', nation: 'FRA', ovr: 87, role: '主力', note: '门线前的第二个教练' },
+    { name: '赖因德斯', number: 14, pos: 'CM', nation: 'NED', ovr: 83, role: '主力', note: '把转身做得像呼吸一样' },
+    { name: '托莫里', number: 23, pos: 'CB', nation: 'ENG', ovr: 82, role: '主力', note: '追身回防从不犹豫' },
+  ],
+  juv: [
+    { name: '弗拉霍维奇', number: 9, pos: 'ST', nation: 'SRB', ovr: 84, role: '核心', note: '左脚一摆，球场会安静一下' },
+    { name: '伊尔迪兹', number: 10, pos: 'AM', nation: 'TUR', ovr: 80, role: '主力', note: '新十号还在写自己的故事' },
+    { name: '布雷默', number: 3, pos: 'CB', nation: 'BRA', ovr: 84, role: '主力', note: '防线里的硬骨头' },
+    { name: '坎比亚索', number: 27, pos: 'CM', nation: 'ITA', ovr: 82, role: '主力', note: '左右两边都能找到他' },
+    { name: '洛卡特利', number: 5, pos: 'CM', nation: 'ITA', ovr: 82, role: '队长', note: '用一脚出球把压力送走' },
+    { name: '什琴斯尼', number: 1, pos: 'CB', nation: 'POL', ovr: 84, role: '主力', note: '门前的最后一声提醒' },
+  ],
+  shp: [
+    { name: '武磊', number: 7, pos: 'ST', nation: 'CHN', ovr: 78, role: '核心', note: '跑位比掌声先到' },
+    { name: '奥斯卡', number: 8, pos: 'AM', nation: 'BRA', ovr: 80, role: '核心', note: '比赛慢下来，他就有时间' },
+    { name: '蒋光太', number: 3, pos: 'CB', nation: 'CHN', ovr: 75, role: '主力', note: '防线不需要太多话' },
+    { name: '颜骏凌', number: 1, pos: 'CB', nation: 'CHN', ovr: 76, role: '主力', note: '熟悉每一束主场灯光' },
+    { name: '徐新', number: 6, pos: 'CM', nation: 'CHN', ovr: 73, role: '主力', note: '中场的脏活有人做' },
+    { name: '巴尔加斯', number: 10, pos: 'WG', nation: 'ARG', ovr: 78, role: '主力', note: '拿球时总想把比赛拉开' },
+  ],
+  sdt: [
+    { name: '克雷桑', number: 9, pos: 'ST', nation: 'BRA', ovr: 78, role: '核心', note: '禁区里不喜欢浪费时间' },
+    { name: '孙准浩', number: 28, pos: 'CM', nation: 'KOR', ovr: 77, role: '主力', note: '把中场的缝隙补好' },
+    { name: '高准翼', number: 3, pos: 'CB', nation: 'CHN', ovr: 75, role: '主力', note: '回追时很少回头' },
+    { name: '王大雷', number: 14, pos: 'CB', nation: 'CHN', ovr: 77, role: '队长', note: '门前的情绪也是武器' },
+    { name: '谢文能', number: 23, pos: 'WG', nation: 'CHN', ovr: 72, role: '轮换', note: '年轻腿脚不知疲倦' },
+    { name: '李源一', number: 22, pos: 'CM', nation: 'CHN', ovr: 74, role: '主力', note: '给球队一个稳定的出口' },
+  ],
+};

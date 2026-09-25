@@ -70,8 +70,6 @@ export function avatarSVG(look: Look, age: number, colors: [string, string], num
   </g></svg>`;
 }
 
-const SHIELD = 'M50 4 L94 16 L90 70 Q84 100 50 116 Q16 100 10 70 L6 16 Z';
-
 function patternFor(p: number, c2: string): string {
   switch (p) {
     case 0: return [20, 40, 60, 80].map(x => `<rect x="${x - 5}" y="0" width="10" height="120" fill="${c2}"/>`).join('');
@@ -86,16 +84,19 @@ function patternFor(p: number, c2: string): string {
 export function crestSVG(club: Club, size = 48): string {
   const id = uid('cr');
   const [c1, c2] = club.colors;
-  const txt = isLight(c1) && isLight(c2) ? '#1a1a1a' : '#ffffff';
-  const stars = club.rep >= 90 ? `<g fill="#ffd54a">${[-14, 0, 14].map(dx => `<path transform="translate(${50 + dx} 0)" d="M0 -6 L1.8 -1.8 L6 -1.8 L2.6 1 L3.8 5.4 L0 2.8 L-3.8 5.4 L-2.6 1 L-6 -1.8 L-1.8 -1.8Z" />`).join('')}</g>` : '';
-  return `<svg viewBox="0 -10 100 130" width="${size}" height="${size * 1.3}" xmlns="http://www.w3.org/2000/svg">
-  <defs><clipPath id="${id}"><path d="${SHIELD}"/></clipPath><linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+  const txt = isLight(c1) && isLight(c2) ? '#132033' : '#ffffff';
+  const stars = club.rep >= 90 ? `<g fill="#ffe27a">${[-12, 0, 12].map(dx => `<path transform="translate(${50 + dx} 12)" d="M0 -5 L1.5 -1.6 L5 -1.6 L2.2 .6 L3.2 4.5 L0 2.2 L-3.2 4.5 L-2.2 .6 L-5 -1.6 L-1.5 -1.6Z"/>`).join('')}</g>` : '';
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${club.name}" xmlns="http://www.w3.org/2000/svg">
+  <defs><clipPath id="${id}"><circle cx="50" cy="52" r="38"/></clipPath><radialGradient id="${id}g" cx="30%" cy="18%" r="80%"><stop offset="0" stop-color="#fff" stop-opacity=".36"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></radialGradient></defs>
+  <circle cx="50" cy="52" r="47" fill="#08111d" opacity=".65"/>
+  <circle cx="50" cy="52" r="44" fill="${c2}"/>
+  <circle cx="50" cy="52" r="39.5" fill="${c1}" stroke="#fff" stroke-opacity=".3" stroke-width="1.4"/>
+  <g clip-path="url(#${id})">${patternFor(club.pattern, c2)}<rect x="10" y="12" width="80" height="80" fill="url(#${id}g)"/></g>
+  <circle cx="50" cy="52" r="39.5" fill="none" stroke="${c2}" stroke-width="2.5" opacity=".9"/>
   ${stars}
-  <path d="${SHIELD}" fill="${c1}"/>
-  <g clip-path="url(#${id})">${patternFor(club.pattern, c2)}<rect x="0" y="0" width="100" height="120" fill="url(#${id}g)"/></g>
-  <path d="${SHIELD}" fill="none" stroke="${shade(c2 === '#ffffff' ? c1 : c2, -0.25)}" stroke-width="4"/>
-  <rect x="14" y="48" width="72" height="22" rx="4" fill="rgba(0,0,0,.45)"/>
-  <text x="50" y="65" text-anchor="middle" font-size="17" font-weight="900" fill="${txt === '#1a1a1a' ? '#fff' : txt}" font-family="Arial Black,Arial">${club.short}</text>
+  <path d="M25 70 Q50 82 75 70" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="1.4"/>
+  <text x="50" y="59" text-anchor="middle" font-size="19" font-weight="950" letter-spacing="-.4" fill="${txt}" font-family="Arial Black,Arial,sans-serif">${club.short}</text>
+  <text x="50" y="72" text-anchor="middle" font-size="5.5" letter-spacing="1.6" fill="${txt}" opacity=".72" font-family="Arial,sans-serif">${club.city.toUpperCase()}</text>
   </svg>`;
 }
 
@@ -133,6 +134,17 @@ export function flagSVG(n: Nation, w = 36): string {
     ITA: `<rect width="10" height="20" fill="#009246"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#ce2b37"/>`,
     JPN: `<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fill="#bc002d"/>`,
     KOR: `<rect width="30" height="20" fill="#fff"/><path d="M9 10 A6 6 0 0 1 21 10Z" fill="#c60c30"/><path d="M9 10 A6 6 0 0 0 21 10Z" fill="#003478"/>`,
+    BEL: `<rect width="10" height="20" fill="#111"/><rect x="10" width="10" height="20" fill="#f7d117"/><rect x="20" width="10" height="20" fill="#ed2939"/>`,
+    EGY: `<rect width="30" height="6.67" fill="#ce1126"/><rect y="6.67" width="30" height="6.67" fill="#fff"/><rect y="13.33" width="30" height="6.67" fill="#000"/>`,
+    COL: `<rect width="30" height="10" fill="#fcd116"/><rect y="10" width="30" height="5" fill="#003893"/><rect y="15" width="30" height="5" fill="#ce1126"/>`,
+    HUN: `<rect width="30" height="6.67" fill="#ce2939"/><rect y="6.67" width="30" height="6.67" fill="#fff"/><rect y="13.33" width="30" height="6.67" fill="#477050"/>`,
+    POL: `<rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#dc143c"/>`,
+    URU: `<rect width="30" height="20" fill="#fff"/>${[3, 7, 11, 15, 19].map(y => `<rect y="${y}" width="30" height="2" fill="#5ca9d6"/>`).join('')}<rect width="9" height="9" fill="#5ca9d6"/>`,
+    CAN: `<rect width="8" height="20" fill="#d80621"/><rect x="8" width="14" height="20" fill="#fff"/><rect x="22" width="8" height="20" fill="#d80621"/><path d="M15 4 L17 8 L21 8 L18 11 L19 15 L15 13 L11 15 L12 11 L9 8 L13 8Z" fill="#d80621"/>`,
+    MAR: `<rect width="30" height="20" fill="#c1272d"/><path d="M15 4 L17 9 L22 9 L18 12 L19.5 17 L15 14 L10.5 17 L12 12 L8 9 L13 9Z" fill="none" stroke="#006233" stroke-width="1.4"/>`,
+    ARM: `<rect width="30" height="6.67" fill="#d90012"/><rect y="6.67" width="30" height="6.67" fill="#0033a0"/><rect y="13.33" width="30" height="6.67" fill="#f2a800"/>`,
+    USA: `<rect width="30" height="20" fill="#fff"/>${[2, 6, 10, 14, 18].map(y => `<rect y="${y}" width="30" height="2" fill="#b22234"/>`).join('')}<rect width="13" height="10" fill="#3c3b6e"/>`,
+    SRB: `<rect width="30" height="6.67" fill="#c6363c"/><rect y="6.67" width="30" height="6.67" fill="#0c4076"/><rect y="13.33" width="30" height="6.67" fill="#fff"/>`,
   };
   return `<svg viewBox="0 0 30 20" width="${w}" height="${h}" style="border-radius:3px;box-shadow:0 1px 3px #0006" xmlns="http://www.w3.org/2000/svg">${inner[n.id] ?? ''}</svg>`;
 }
@@ -191,6 +203,8 @@ export function sceneSVG(kind: string, accent = '#2e7d32'): string {
       <g transform="translate(60 110) rotate(-20)"><rect width="70" height="18" rx="9" fill="#f5deb3"/><rect x="20" width="24" height="18" fill="#fff" stroke="#ddd"/></g>`,
     train: `${bg('#43a047', '#2e7d32')}${Array.from({ length: 8 }, (_, i) => `<rect x="${i * 40}" y="0" width="20" height="${H}" fill="#fff" opacity=".05"/>`).join('')}
       ${[60, 110, 160, 210, 260].map((x, i) => `<path d="M${x} ${110 - (i % 2) * 20} l8 18 l-16 0Z" fill="#ff6d00"/>`).join('')}<circle cx="120" cy="120" r="10" fill="#fff" stroke="#222" stroke-width="2"/><path d="M40 60 Q160 20 280 60" stroke="#fff" stroke-dasharray="6 6" fill="none"/>`,
+    dawn: `${bg('#0a1f38', '#193b54')}<circle cx="250" cy="42" r="23" fill="#ffd166" opacity=".9"/><path d="M0 116 Q70 80 150 116 T320 116V150H0Z" fill="#102b3b"/><path d="M40 125 Q160 73 280 125" stroke="#54d18c" stroke-width="3" fill="none" opacity=".8"/><path d="M160 115 L160 64" stroke="#fff" stroke-width="2" opacity=".45"/><path d="M150 78 L160 64 L170 78" stroke="#fff" stroke-width="2" fill="none" opacity=".45"/><text x="28" y="38" fill="#fff" font-size="12" font-family="Arial" opacity=".8">05:40 · TRAINING GROUND</text>`,
+    locker: `${bg('#132033', '#1a3042')}<rect x="24" y="24" width="272" height="102" rx="8" fill="#263b4e" stroke="#6ee7b7" stroke-opacity=".45"/><g fill="#b8d8d0" opacity=".9">${[45, 95, 145, 195, 245].map((x, i) => `<rect x="${x}" y="39" width="31" height="65" rx="4"/><circle cx="${x + 15}" cy="56" r="7" fill="#f4c7a1"/><path d="M${x + 6} 72 Q${x + 15} 64 ${x + 24} 72V96H${x + 6}Z" fill="${i % 2 ? '#36a675' : '#f1b24a'}"/>`).join('')}</g><path d="M28 118 H292" stroke="#fbbf24" stroke-width="3" opacity=".7"/>`,
     love: `${bg('#fce4ec', '#f8bbd0')}${Array.from({ length: 10 }, () => `<path transform="translate(${r() * W} ${r() * H}) scale(${0.5 + r() * 1.5})" d="M0 8 C-14 -2 -10 -14 0 -7 C10 -14 14 -2 0 8Z" fill="#ec407a" opacity="${0.3 + r() * 0.6}"/>`).join('')}`,
     social: `${bg('#e3f2fd', '#90caf9')}<rect x="120" y="14" width="80" height="130" rx="12" fill="#212121"/><rect x="126" y="24" width="68" height="108" rx="4" fill="#fafafa"/>
       ${[0, 1, 2, 3].map(i => `<rect x="${i % 2 ? 150 : 132}" y="${32 + i * 24}" width="40" height="16" rx="8" fill="${i % 2 ? '#1e88e5' : '#e0e0e0'}"/>`).join('')}
@@ -206,7 +220,6 @@ export function sceneSVG(kind: string, accent = '#2e7d32'): string {
 
 /** 训练/生活方式图标 */
 export const ICONS: Record<string, string> = {
-  pace: '⚡', shooting: '🎯', passing: '🎯', dribbling: '🌀', defending: '🛡️', physical: '💪',
-  balanced: '⚖️', intense: '🔥', rest: '🛌', focus: '⚽', social: '📱', relax: '🎮', party: '🍾', charity: '❤️',
+  pace: 'gauge', shooting: 'crosshair', passing: 'compass', dribbling: 'orbit', defending: 'shield-check', physical: 'dumbbell',
+  balanced: 'scale', intense: 'flame', rest: 'bed', focus: 'circle-dot', social: 'smartphone', relax: 'gamepad-2', party: 'party-popper', charity: 'heart',
 };
-ICONS.passing = '🧭';

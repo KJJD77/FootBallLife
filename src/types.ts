@@ -5,7 +5,7 @@ export type Role = '青训' | '替补' | '轮换' | '主力' | '核心';
 export type TrainPlan = AttrKey | 'balanced' | 'intense' | 'rest';
 export type LifePlan = 'focus' | 'social' | 'relax' | 'party' | 'charity';
 export type Comp = 'league' | 'cup' | 'cont' | 'intl' | 'youth' | 'tour';
-export type HighlightType = 'goal' | 'longshot' | 'freekick' | 'assist' | 'header' | 'tackle';
+export type HighlightType = 'goal' | 'longshot' | 'freekick' | 'assist' | 'header' | 'tackle' | 'pass' | 'save' | 'miss' | 'celebrate';
 export type TrophyKind = 'league' | 'cup' | 'cont' | 'ballon' | 'boot' | 'intl' | 'young' | 'poty' | 'tots';
 
 export interface Look { skin: string; hair: string; style: number; beard: boolean; eye: string }
@@ -56,6 +56,20 @@ export interface Player {
 
 export interface Coach { name: string; style: string; desc: string }
 
+export interface Teammate {
+  name: string;
+  number: number;
+  pos: Pos;
+  nation: string;
+  ovr: number;
+  role: '队长' | '核心' | '主力' | '轮换' | '青训';
+  chemistry: number;
+  apps: number;
+  goals: number;
+  assists: number;
+  note: string;
+}
+
 export type ChanceKind = 'box' | 'long' | 'pass' | 'dribble' | 'defend' | 'header' | 'freekick';
 
 export interface LivePlan {
@@ -72,4 +86,5 @@ export interface Game {
   plan: { train: TrainPlan; life: LifePlan };
   log: LogEntry[]; retired: boolean; offerBoost: number;
   coach: Coach; lifeActs: string[];
+  squad: Teammate[];
 }

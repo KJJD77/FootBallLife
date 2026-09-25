@@ -55,6 +55,35 @@ function scriptFor(type: HighlightType): Script {
       ball: [{ t: 0, x: 52.2, z: 33.2 }, { t: 1.2, x: 52.2, z: 33.2 }, { t: 3.4, x: 46.8, z: 0.5, y: 2.3, arc: 7 }, { t: 4.1, x: 52.6, z: 2.4, y: 1.6, arc: 0.2 }, { t: 6.4, x: 53.4, z: 2.4 }],
       keeperDive: { t: 3.6, z: -1 },
     };
+    case 'pass': return {
+      duration: 4.8, goalAt: null, label: '精准出球',
+      hero: [{ t: 0, x: -18, z: 10 }, { t: 1.7, x: -8, z: 5 }, { t: 4.8, x: 2, z: 4 }],
+      mate: [{ t: 0, x: 8, z: -14 }, { t: 2.4, x: 20, z: -8 }, { t: 4.8, x: 32, z: -3 }],
+      foe: [{ t: 0, x: 2, z: 12 }, { t: 2.4, x: 11, z: 8 }, { t: 4.8, x: 20, z: 5 }],
+      ball: [{ t: 0, x: -17.2, z: 9.6 }, { t: 1.8, x: 0, z: 4.8, y: 1.2, arc: 1.5 }, { t: 3.2, x: 16, z: -7, y: 1.5, arc: 1.8 }, { t: 4.8, x: 31, z: -3 }],
+    };
+    case 'save': return {
+      duration: 4.9, goalAt: null, label: '门将神扑',
+      hero: [{ t: 0, x: 44, z: 0 }, { t: 2.3, x: 49, z: 0 }, { t: 3.1, x: 51, z: -1.8, y: 0.5 }, { t: 4.9, x: 48, z: -1 }],
+      foe: [{ t: 0, x: 34, z: 6 }, { t: 2.3, x: 43, z: 3 }, { t: 4.9, x: 44, z: 3 }],
+      mate: [{ t: 0, x: 28, z: -8 }, { t: 4.9, x: 38, z: -4 }],
+      ball: [{ t: 0, x: 28, z: 6, y: 0.8 }, { t: 2.1, x: 45, z: 1.3, y: 1.4, arc: 1.2 }, { t: 3.2, x: 50, z: -1.6, y: 1.2, arc: 0.8 }, { t: 4.9, x: 48, z: -1 }],
+      keeperDive: { t: 2.6, z: -2.2 },
+    };
+    case 'miss': return {
+      duration: 4.6, goalAt: null, label: '擦柱而过',
+      hero: [{ t: 0, x: 18, z: 3 }, { t: 2.2, x: 30, z: 2 }, { t: 4.6, x: 38, z: 8 }],
+      foe: [{ t: 0, x: 27, z: 7 }, { t: 2.6, x: 34, z: 4 }, { t: 4.6, x: 36, z: 5 }],
+      ball: [{ t: 0, x: 18, z: 3 }, { t: 2.1, x: 34, z: 2, y: 0.8, arc: 0.8 }, { t: 3.5, x: 54, z: 8, y: 1.2, arc: 1.5 }, { t: 4.6, x: 58, z: 10 }],
+    };
+    case 'celebrate': return {
+      duration: 4.8, goalAt: 3.1, label: '全队庆祝！',
+      hero: [{ t: 0, x: 38, z: 4 }, { t: 2.8, x: 48, z: 0 }, { t: 4.8, x: 42, z: -12 }],
+      mate: [{ t: 0, x: 25, z: 15 }, { t: 3.2, x: 47, z: 2 }, { t: 4.8, x: 44, z: -8 }],
+      foe: [{ t: 0, x: 38, z: -2 }, { t: 4.8, x: 36, z: 1 }],
+      ball: [{ t: 0, x: 38, z: 4 }, { t: 2.8, x: 48, z: 0 }, { t: 3.1, x: 52.6, z: -2, y: 1.2, arc: 0.5 }, { t: 4.8, x: 52.6, z: -2 }],
+      keeperDive: { t: 2.7, z: 2 },
+    };
     case 'tackle': return {
       duration: 5.6, goalAt: null, label: '关键拦截！',
       hero: [{ t: 0, x: -18, z: 12 }, { t: 2.6, x: -31, z: 3.4 }, { t: 3.0, x: -33, z: 2.2, y: -0.4 }, { t: 3.6, x: -33.6, z: 2 }, { t: 5.6, x: -30, z: 6 }],
@@ -119,9 +148,14 @@ function makePlayer(c1: string, c2: string, skin: string): THREE.Group {
   const shorts = new THREE.MeshStandardMaterial({ color: c2, roughness: 0.7 });
   const sk = new THREE.MeshStandardMaterial({ color: skin, roughness: 0.8 });
   const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.55, 4, 10), shirt); body.position.y = 1.15;
-  const legs = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 0.5, 4, 8), shorts); legs.position.y = 0.5;
+  const legL = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.48, 4, 8), shorts); legL.position.set(-0.13, 0.5, 0);
+  const legR = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.48, 4, 8), shorts); legR.position.set(0.13, 0.5, 0);
+  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.36, 4, 8), shirt); armL.position.set(-0.37, 1.17, 0); armL.rotation.z = -0.18;
+  const armR = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.36, 4, 8), shirt); armR.position.set(0.37, 1.17, 0); armR.rotation.z = 0.18;
+  const footL = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), sk); footL.scale.set(1.35, .65, 1.9); footL.position.set(-0.13, 0.13, 0.05);
+  const footR = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), sk); footR.scale.set(1.35, .65, 1.9); footR.position.set(0.13, 0.13, 0.05);
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), sk); head.position.y = 1.75;
-  [body, legs, head].forEach(m => { m.castShadow = true; g.add(m); });
+  [body, legL, legR, armL, armR, footL, footR, head].forEach(m => { m.castShadow = true; g.add(m); });
   return g;
 }
 

@@ -80,7 +80,7 @@ const FLAVOR = [
   () => '🔄 对方做出换人调整。', () => '🥅 角球被顶出禁区。', (c: string) => `📢 “${c}！${c}！”助威声响彻球场。`,
 ];
 
-const HL_BY_KIND: Record<ChanceKind, HighlightType> = { box: 'goal', long: 'longshot', pass: 'assist', dribble: 'goal', header: 'header', freekick: 'freekick', defend: 'tackle' };
+const HL_BY_KIND: Record<ChanceKind, HighlightType> = { box: 'goal', long: 'longshot', pass: 'pass', dribble: 'goal', header: 'header', freekick: 'freekick', defend: 'tackle' };
 
 export function runLiveMatch(g: Game, plan: LivePlan, host: HTMLElement): Promise<LiveOutcome> {
   const p = g.player, club = clubById(p.clubId), f = plan.f;
@@ -107,6 +107,11 @@ export function runLiveMatch(g: Game, plan: LivePlan, host: HTMLElement): Promis
   </div>`;
   const $ = (id: string) => host.querySelector('#' + id) as HTMLElement;
   const feed = $('lv-feed'), act = $('lv-act'), ball = $('lv-ball'), me = $('lv-me');
+  const pitch = host.querySelector('.lv-pitch') as HTMLElement;
+  const teammateName = () => {
+    const attacking = g.squad.filter(t => t.pos !== 'CB');
+    return pick(attacking.length ? attacking : g.squad).name;
+  };
   $('lv-speed').onclick = () => { speed = speed === 1 ? 3 : speed === 3 ? 8 : 1; $('lv-speed').textContent = `⏩ 速度 ${speed}x`; };
   $('lv-auto').onclick = () => { auto = !auto; $('lv-auto').textContent = `🤖 自动决策：${auto ? '开' : '关'}`; };
   me.style.opacity = onPitch ? '1' : '.25';
@@ -116,6 +121,18 @@ export function runLiveMatch(g: Game, plan: LivePlan, host: HTMLElement): Promis
     const li = document.createElement('li'); li.className = cls;
     li.innerHTML = `<span>${icon}</span><div>${html}</div>`;
     feed.prepend(li);
+  };
+  const motion = (kind: string, tone: 'good' | 'bad' | 'hot' | 'neutral' = 'neutral') => {
+    pitch.classList.remove('motion-good', 'motion-bad', 'motion-hot', 'motion-neutral');
+    void pitch.offsetWidth;
+    pitch.classList.add(`motion-${tone}`);
+    const marker = document.createElement('span');
+    marker.className = `lv-motion-marker ${tone}`;
+    marker.textContent = kind;
+    marker.style.left = `${20 + rand() * 60}%`;
+    marker.style.top = `${20 + rand() * 60}%`;
+    pitch.appendChild(marker);
+    setTimeout(() => marker.remove(), 900 / Math.min(speed, 2));
   };
   const moveBall = (x: number, y = 20 + rand() * 60) => { ball.style.left = `${x}%`; ball.style.top = `${y}%`; me.style.left = `${clamp(x - 6 + rand() * 12, 4, 94)}%`; me.style.top = `${clamp(y + (rand() - 0.5) * 20, 8, 90)}%`; };
   const setScore = () => { $('lv-my').textContent = String(my); $('lv-op').textContent = String(them); };
@@ -169,30 +186,31 @@ export function runLiveMatch(g: Game, plan: LivePlan, host: HTMLElement): Promis
     out.kinds.push(kind);
     if (o.risk && rand() < o.risk) { add('🟨', `${min}' 你吃到一张黄牌。`); out.ratingAdj -= 0.25; }
     if (!ok) {
-      add('❌', `${min}' ${o.lose}`, 'bad'); sfx.miss(); flash(false);
+      motion('失误', 'bad'); add('❌', `${min}' ${o.lose}`, 'bad'); sfx.miss(); flash(false);
       out.ratingAdj -= o.reward === 'safe' ? 0 : 0.15;
       if (o.fame) g.player.morale = clamp(g.player.morale - 3, 0, 100);
+      await show3D(o.hl ?? 'miss', `${min}' ${p.name}：${o.lose}`);
       return false;
     }
     if (o.fame) g.player.fame = clamp(g.player.fame + o.fame * 0.5, 0, 100);
     switch (o.reward) {
       case 'goal':
-        out.goals++; my++; setScore(); sfx.goal(); flash(true); moveBall(96, 50);
+        out.goals++; my++; setScore(); sfx.goal(); flash(true); moveBall(96, 50); motion('射门', 'good');
         add('⚽', `${min}' <b class="gold">球进了！！！</b>${o.win}`, 'goal');
         await show3D(o.hl ?? HL_BY_KIND[kind], `${min}' ${p.name}：${o.win}`);
         break;
       case 'assist':
-        out.assists++; my++; setScore(); sfx.goal(); flash(true); moveBall(96, 50);
+        out.assists++; my++; setScore(); sfx.goal(); flash(true); moveBall(96, 50); motion('助攻', 'good');
         add('👟', `${min}' <b class="gold">助攻！</b>${o.win}`, 'goal');
         await show3D('assist', `${min}' ${p.name}送出助攻！`);
         break;
       case 'prevent':
         if (threat) out.prevented++; else out.ratingAdj += 0.3;
-        add('🛡️', `${min}' <b>${o.win}</b>`, 'good'); sfx.crowd();
-        if (o.hl && rand() < 0.5) await show3D('tackle', `${min}' ${p.name}关键拦截！`);
+        motion('铲断', 'good'); add('🛡️', `${min}' <b>${o.win}</b>`, 'good'); sfx.crowd();
+        await show3D(o.hl ?? 'tackle', `${min}' ${p.name}：${o.win}`);
         break;
-      case 'show': out.ratingAdj += 0.35; add('✨', `${min}' ${o.win}`, 'good'); sfx.crowd(); break;
-      case 'safe': out.ratingAdj += 0.05; add('✅', `${min}' ${o.win}`); break;
+      case 'show': out.ratingAdj += 0.35; motion('突破', 'hot'); add('✨', `${min}' ${o.win}`, 'good'); sfx.crowd(); await show3D('pass', `${min}' ${p.name}完成一次漂亮摆脱`); break;
+      case 'safe': out.ratingAdj += 0.05; motion('控球', 'neutral'); add('✅', `${min}' ${o.win}`); await show3D('pass', `${min}' ${p.name}把球稳稳交给队友`); break;
     }
     return true;
   };
@@ -230,26 +248,26 @@ export function runLiveMatch(g: Game, plan: LivePlan, host: HTMLElement): Promis
       await clock(ev.min);
       const m = ev.min;
       switch (ev.type) {
-        case 'kick': sfx.whistle(); add('🟢', plan.onMin ? '比赛开始！你今天坐在替补席上，随时准备登场……' : `比赛开始！${myName} vs ${oppName}。`); moveBall(50, 50); break;
-        case 'subon': onPitch = true; me.style.opacity = '1'; sfx.whistle(); add('🔄', `${m}' <b class="gold">换人！你替补登场！</b>把握每一分钟证明自己！`, 'goal'); break;
-        case 'flavor': add('💬', `${m}' ${pick(FLAVOR)(club.name)}`); break;
-        case 'mate': my++; setScore(); sfx.goal(); flash(true); moveBall(96, 50); add('⚽', `${m}' ${myName}的队友破门！比分 ${my}-${them}`, 'goal'); await sleep(500); break;
+        case 'kick': sfx.whistle(); motion('开球', 'neutral'); add('🟢', plan.onMin ? '比赛开始！你今天坐在替补席上，随时准备登场……' : `比赛开始！${myName} vs ${oppName}。`); moveBall(50, 50); break;
+        case 'subon': onPitch = true; me.style.opacity = '1'; sfx.whistle(); motion('登场', 'hot'); add('🔄', `${m}' <b class="gold">换人！你替补登场！</b>把握每一分钟证明自己！`, 'goal'); break;
+        case 'flavor': motion('比赛动态', 'neutral'); add('💬', `${m}' ${pick(FLAVOR)(club.name)}`); break;
+        case 'mate': my++; setScore(); sfx.goal(); flash(true); moveBall(96, 50); motion('队友进球', 'good'); add('⚽', `${m}' ${teammateName()}破门！比分 ${my}-${them}`, 'goal'); await sleep(500); break;
         case 'opp':
           if (ev.defend && onPitch) {
             const stopped = await decide('defend', m, true);
             if (stopped) break;
           }
-          them++; setScore(); sfx.oppGoal(); flash(false); moveBall(4, 50);
+          them++; setScore(); sfx.oppGoal(); flash(false); moveBall(4, 50); motion('对手进球', 'bad');
           add('😣', `${m}' ${oppName}破门得分……比分 ${my}-${them}`, 'bad'); await sleep(500); break;
         case 'chance':
           if (!onPitch) break;
           if (ev.kind === 'defend') {
             const ok = await decide('defend', m, false);
-            if (!ok && rand() < 0.45) { out.prevented--; them++; setScore(); sfx.oppGoal(); add('😣', `${m}' 对手抓住机会破门……比分 ${my}-${them}`, 'bad'); }
+            if (!ok && rand() < 0.45) { out.prevented--; them++; setScore(); sfx.oppGoal(); motion('防线失守', 'bad'); add('😣', `${m}' 对手抓住机会破门……比分 ${my}-${them}`, 'bad'); }
           } else await decide(ev.kind!, m, false);
           break;
-        case 'ht': sfx.whistle(); add('⏸️', `半场结束，比分 ${my}-${them}。`); await sleep(600); break;
-        case 'ft': sfx.longWhistle(); add('🔚', `全场比赛结束！${my > them ? '你的球队赢了！🎉' : my === them ? '双方握手言和。' : '球队遗憾告负。'}`); break;
+        case 'ht': sfx.whistle(); motion('中场', 'neutral'); add('⏸️', `半场结束，比分 ${my}-${them}。`); await sleep(600); break;
+        case 'ft': sfx.longWhistle(); motion('终场', my > them ? 'good' : my === them ? 'neutral' : 'bad'); add('🔚', `全场比赛结束！${my > them ? '你的球队赢了！🎉' : my === them ? '双方握手言和。' : '球队遗憾告负。'}`); break;
       }
       await sleep(250);
     }

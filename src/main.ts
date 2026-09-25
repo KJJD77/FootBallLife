@@ -1,5 +1,10 @@
 import './style.css';
 import { Chart, registerables } from 'chart.js';
+import {
+  ArrowRight, ArrowUpRight, Bed, BookOpen, CalendarDays, ChartNoAxesCombined, CircleDot, Compass, Crosshair, createIcons,
+  Dumbbell, FastForward, Flame, Gamepad2, Gauge, Hand, Heart, IdCard, Landmark, Orbit, PartyPopper, Play, RefreshCw,
+  Scale, Shield, ShieldCheck, Shuffle, Smartphone, Trophy, UsersRound, Volume2, VolumeX,
+} from 'lucide';
 import { avatarSVG, crestSVG, flagSVG, ICONS, jerseySVG, sceneSVG, trophySVG } from './art';
 import { CLUBS, EYES, GIVEN, HAIR_STYLES, HAIRS, LEAGUES, NATIONS, SKINS, SURNAMES } from './data';
 import {
@@ -24,12 +29,19 @@ const app = document.getElementById('app')!;
 const modal = document.getElementById('modal')!;
 
 let g: Game | null = load();
-let tab: 'month' | 'career' | 'league' | 'honors' | 'life' | 'log' = 'month';
+let tab: 'month' | 'career' | 'league' | 'honors' | 'life' | 'log' | 'squad' = 'month';
 let charts: Chart[] = [];
 let highlight: { replay: () => void; dispose: () => void } | null = null;
 let steps: (() => void)[] = [];
 
 const esc = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+const icon = (name: string, label = '') => `<i data-lucide="${name}" aria-hidden="true"></i>${label}`;
+const iconSet = {
+  ArrowRight, ArrowUpRight, Bed, BookOpen, CalendarDays, ChartNoAxesCombined, CircleDot, Compass, Crosshair, Dumbbell,
+  FastForward, Flame, Gamepad2, Gauge, Hand, Heart, IdCard, Landmark, Orbit, PartyPopper, Play, RefreshCw, Scale,
+  Shield, ShieldCheck, Shuffle, Smartphone, Trophy, UsersRound, Volume2, VolumeX,
+};
+const hydrateIcons = () => createIcons({ icons: iconSet, attrs: { 'stroke-width': 1.8 } });
 
 function load(): Game | null {
   try { const s = localStorage.getItem(SAVE_KEY); return s ? migrate(JSON.parse(s) as Game) : null; } catch { return null; }
@@ -56,7 +68,7 @@ function renderCreate() {
   app.innerHTML = `
   <div class="create">
     <div class="create-hero">
-      <h1>⚽ 足球人生模拟器</h1>
+      <h1><span class="hero-mark">${icon('circle-dot')}</span> 足球人生模拟器</h1>
       <p>从 16 岁的青训小将开始，一个月一个月地书写你的传奇。</p>
     </div>
     <div class="create-grid">
@@ -67,8 +79,8 @@ function renderCreate() {
         <div class="jersey-preview">${jerseySVG(club.colors, club.pattern, POS_INFO[c.pos].num, esc(c.name).slice(0, 6), 120)}</div>
       </div>
       <div class="card form">
-        <label>球员姓名</label>
-        <div class="row"><input id="name" maxlength="12" value="${esc(c.name)}"/><button data-act="rname" class="btn ghost">🎲 随机</button></div>
+        <label>${icon('id-card', '球员姓名')}</label>
+        <div class="row"><input id="name" maxlength="12" value="${esc(c.name)}"/><button data-act="rname" class="btn ghost">${icon('shuffle', '随机')}</button></div>
         <label>国籍</label>
         <div class="chips">${NATIONS.map(n => `<button class="chip ${n.id === c.nation ? 'on' : ''}" data-act="nation" data-v="${n.id}">${flagSVG(n, 20)} ${n.name}</button>`).join('')}</div>
         <label>位置</label>
@@ -81,13 +93,13 @@ function renderCreate() {
         <div class="look-row"><span>瞳色</span>${EYES.map(s => `<button class="swatch ${s === c.look.eye ? 'on' : ''}" style="background:${s}" data-act="eye" data-v="${s}"></button>`).join('')}</div>
         <div class="look-row"><span>发型</span>${HAIR_STYLES.map((s, i) => `<button class="chip sm ${i === c.look.style ? 'on' : ''}" data-act="style" data-v="${i}">${s}</button>`).join('')}
           <button class="chip sm ${c.look.beard ? 'on' : ''}" data-act="beard">🧔 成年后留胡子</button></div>
-        <label>选择青训营 <button class="btn ghost sm" data-act="reroll">🔄 换一批</button></label>
+        <label>${icon('landmark', '选择青训营')} <button class="btn ghost sm" data-act="reroll">${icon('refresh-cw', '换一批')}</button></label>
         <div class="club-grid">${c.clubs.map(id => { const cl = clubById(id); return `
           <button class="club-card ${id === c.clubId ? 'on' : ''}" data-act="club" data-v="${id}">
             ${crestSVG(cl, 40)}<div><b>${cl.name}</b><small>${leagueById(cl.league).short} · 声望 ${'★'.repeat(Math.round(cl.rep / 20))}</small>
             <small class="muted">${cl.rep >= 88 ? '豪门青训：资源顶级，但进一线队很难' : cl.rep >= 68 ? '中游球队：成长与机会兼顾' : '小球队：更容易获得出场机会'}</small></div>
           </button>`; }).join('')}</div>
-        <button class="btn primary big" data-act="start">开始职业生涯 →</button>
+        <button class="btn primary big" data-act="start">${icon('arrow-right')} 开始职业生涯</button>
       </div>
     </div>
   </div>`;
@@ -125,6 +137,36 @@ const bar = (label: string, v: number, cls = '', extra = '') =>
 
 const ratingCls = (r: number) => (r >= 8 ? 'r-great' : r >= 7 ? 'r-good' : r >= 6 ? 'r-ok' : 'r-bad');
 const roleCls: Record<string, string> = { 青训: 'role-y', 替补: 'role-b', 轮换: 'role-r', 主力: 'role-s', 核心: 'role-c' };
+const squadRoleCls: Record<string, string> = { 队长: 'role-c', 核心: 'role-c', 主力: 'role-s', 轮换: 'role-r', 青训: 'role-y' };
+
+function storyBeat(game: Game): { kicker: string; title: string; text: string; art: string } {
+  const p = game.player;
+  if (p.injury > 0) return { kicker: '康复室灯还亮着', title: '先把身体还给自己', text: '队医把你的球鞋收进袋子，叮嘱你别急。窗外训练场的声音一阵阵传来，你第一次发现，职业生涯也需要学会等待。', art: 'injury' };
+  if (p.age <= 16 && p.role === '青训') return { kicker: '第一章 · 青训营', title: '凌晨五点四十的灯', text: '青训营的灯比天亮得早。你把鞋带系紧，走进还没有一线队号码的更衣室，角落里有人小声说起你的名字。', art: 'dawn' };
+  if (p.role === '青训') return { kicker: '还在等那一声召唤', title: '训练结束以后', text: '大部分人已经走了，你又把同一个停球练了十遍。没有掌声，也没有镜头，只有球网被风吹动的声音。', art: 'train' };
+  if (p.captain) return { kicker: '更衣室 · 队长日记', title: '袖标有一点重量', text: '赛前最后一个离开更衣室的人是你。年轻队友等着你说点什么，你只拍了拍他的肩：“先把第一脚传好。”', art: 'locker' };
+  if (game.month === 6) return { kicker: '夏天还没有结束', title: '把假期过成充电', text: '海风把赛季的噪音吹远了一点。你知道下一个夏天会更难，所以这几天的安静也算训练。', art: 'family' };
+  if (p.role === '核心') return { kicker: '聚光灯下', title: '全场都在等你', text: '热身时你抬头看了一眼看台。有人举着你的号码，有人只是在等一场好球。你把目光收回来，继续系紧鞋带。', art: 'fans' };
+  return { kicker: '第二章 · 一线队', title: '把机会留在脚下', text: '教练没有承诺首发，只说了一句“准备好”。你知道职业足球的机会很少提前敲门，更多时候，它只在某个瞬间落到你脚边。', art: 'locker' };
+}
+
+function renderStoryCard(game: Game): string {
+  const story = storyBeat(game);
+  return `<article class="story-card"><div class="story-art">${sceneSVG(story.art, clubById(game.player.clubId).colors[0])}</div><div class="story-copy"><small>${story.kicker}</small><h3>${story.title}</h3><p>${story.text}</p><span class="story-sign">${clubById(game.player.clubId).city} · ${game.year}.${game.month}</span></div></article>`;
+}
+
+function renderSquadStrip(game: Game): string {
+  const squad = [...game.squad].sort((a, b) => b.ovr - a.ovr).slice(0, 4);
+  return `<div class="squad-strip"><div class="section-heading"><div><small>更衣室</small><h3>${icon('users-round', '一起踢球的人')}</h3></div><button class="btn ghost sm" data-act="tab" data-v="squad">查看完整名单 ${icon('arrow-up-right')}</button></div><div class="squad-mini-grid">${squad.map(t => `<div class="squad-mini"><span class="shirt-num">${t.number}</span><div><b>${t.name}</b><small>${POS_INFO[t.pos].name} · ${t.note}</small></div><strong>${t.ovr}</strong></div>`).join('')}</div></div>`;
+}
+
+function renderSquadTab(game: Game): string {
+  const club = clubById(game.player.clubId);
+  const avg = Math.round(game.squad.reduce((sum, t) => sum + t.chemistry, 0) / Math.max(1, game.squad.length));
+  const leaders = [...game.squad].sort((a, b) => b.ovr - a.ovr);
+  return `<div class="card squad-hero" style="--team:${club.colors[0]}"><div>${crestSVG(club, 74)}</div><div><small>一线队 · ${club.name}</small><h2>更衣室名单</h2><p>${club.city}的比赛日从这里开始。有人负责进球，有人负责把球抢回来，也有人在你失误后第一个跑过来。</p><div class="squad-metrics"><span><b>${game.squad.length}</b>人</span><span><b>${avg}</b>默契</span><span><b>${leaders[0]?.ovr ?? 0}</b>最高评分</span></div></div></div>
+  <div class="card"><div class="section-heading"><div><small>本赛季动态</small><h3>${icon('shield-check', '队友与搭档')}</h3></div><span class="muted small">名单参考 2025/26 赛季</span></div><div class="squad-list">${game.squad.map(t => `<article class="teammate-card"><div class="teammate-top"><span class="shirt-num large">${t.number}</span><div><h3>${t.name} <span class="role ${squadRoleCls[t.role]}">${t.role}</span></h3><small>${POS_INFO[t.pos].name} · ${nationById(t.nation).name}</small></div><strong class="teammate-ovr">${t.ovr}</strong></div><p>${t.note}</p><div class="teammate-stats"><span>出场 <b>${t.apps}</b></span><span>进球 <b>${t.goals}</b></span><span>助攻 <b>${t.assists}</b></span><span>默契 <b>${t.chemistry}</b></span></div><div class="chemistry"><i style="width:${t.chemistry}%"></i></div></article>`).join('')}</div></div>`;
+}
 
 function phaseText(game: Game): string {
   const m = game.month;
@@ -206,17 +248,19 @@ function renderMonthTab(game: Game): string {
     ${p.injury ? `<div class="warn">🩹 你正在伤停，还需 ${p.injury} 个月才能上场。</div>` : ''}
   </div>
   ${renderFocus(game)}
+  ${renderStoryCard(game)}
+  <div class="card">${renderSquadStrip(game)}</div>
   <div class="card">
-    <h3>🏋️ 本月训练重点</h3>
+    <h3>${icon('dumbbell', '本月训练重点')}</h3>
     <div class="opt-grid">${TRAIN_OPTS.map(o => `<button class="opt ${game.plan.train === o.id ? 'on' : ''}" data-act="train" data-v="${o.id}">
-      <i>${ICONS[o.id]}</i><b>${o.name}${(ATTR_KEYS as string[]).includes(o.id) && w[o.id as keyof typeof w] >= 0.2 ? ' ★' : ''}</b><small>${(ATTR_KEYS as string[]).includes(o.id) ? `当前 ${Math.round(p.attrs[o.id as keyof typeof p.attrs])}` : o.desc}</small></button>`).join('')}</div>
+      <i class="opt-icon">${icon(ICONS[o.id])}</i><b>${o.name}${(ATTR_KEYS as string[]).includes(o.id) && w[o.id as keyof typeof w] >= 0.2 ? ' ★' : ''}</b><small>${(ATTR_KEYS as string[]).includes(o.id) ? `当前 ${Math.round(p.attrs[o.id as keyof typeof p.attrs])}` : o.desc}</small></button>`).join('')}</div>
     <p class="muted small">★ 为你所在位置的核心能力，对综合评分影响最大。</p>
     <h3>🌃 生活方式</h3>
-    <div class="opt-grid five">${LIFE_OPTS.map(o => `<button class="opt ${game.plan.life === o.id ? 'on' : ''}" data-act="life" data-v="${o.id}"><i>${ICONS[o.id]}</i><b>${o.name}</b><small>${o.desc}</small></button>`).join('')}</div>
+    <div class="opt-grid five">${LIFE_OPTS.map(o => `<button class="opt ${game.plan.life === o.id ? 'on' : ''}" data-act="life" data-v="${o.id}"><i class="opt-icon">${icon(ICONS[o.id])}</i><b>${o.name}</b><small>${o.desc}</small></button>`).join('')}</div>
     <div class="sim-row">
-      ${focusIndex(game) >= 0 && !p.injury ? `<button class="btn primary big" data-act="live">⚽ 亲自出战焦点战</button><button class="btn big" data-act="sim">⏩ 快速模拟本月</button>`
-        : `<button class="btn primary big" data-act="sim">▶ 进入下个月</button>`}
-      ${p.age >= 32 ? '<button class="btn danger" data-act="retire">🧤 宣布退役</button>' : ''}
+      ${focusIndex(game) >= 0 && !p.injury ? `<button class="btn primary big" data-act="live">${icon('play')} 亲自出战焦点战</button><button class="btn big" data-act="sim">${icon('fast-forward')} 快速模拟本月</button>`
+        : `<button class="btn primary big" data-act="sim">${icon('arrow-right')} 进入下个月</button>`}
+      ${p.age >= 32 ? `<button class="btn danger" data-act="retire">${icon('hand')} 宣布退役</button>` : ''}
     </div>
   </div>
   <div class="card">
@@ -327,15 +371,15 @@ function renderLogTab(game: Game): string {
 
 function renderGame(game: Game) {
   const p = game.player;
-  const tabs: [typeof tab, string][] = [['month', '📅 本月'], ['career', '📈 生涯'], ['league', '🏟️ 联赛'], ['honors', '🏆 荣誉'], ['life', '❤️ 生活'], ['log', '🗒️ 日志']];
-  const body = { month: renderMonthTab, career: renderCareerTab, league: renderLeagueTab, honors: renderHonorsTab, life: renderLifeTab, log: renderLogTab }[tab](game);
+  const tabs: [typeof tab, string][] = [['month', icon('calendar-days', '本月')], ['squad', icon('users-round', '队友')], ['career', icon('chart-no-axes-combined', '生涯')], ['league', icon('shield', '联赛')], ['honors', icon('trophy', '荣誉')], ['life', icon('heart', '生活')], ['log', icon('book-open', '日志')]];
+  const body = { month: renderMonthTab, squad: renderSquadTab, career: renderCareerTab, league: renderLeagueTab, honors: renderHonorsTab, life: renderLifeTab, log: renderLogTab }[tab](game);
   app.innerHTML = `
   <header class="top">
-    <div class="brand">⚽ 足球人生</div>
+    <div class="brand"><span class="brand-mark">FL</span> 足球人生</div>
     <div class="date"><b>${game.year}年${MONTHS[game.month]}</b><small>${seasonLabel(seasonOf(game))}赛季 · ${phaseText(game)}</small></div>
     <div class="money">💰 ${fmtMoney(p.money)}</div>
-    <button class="btn ghost sm" data-act="sound">${soundOn() ? '🔊' : '🔇'}</button>
-    <button class="btn ghost sm" data-act="newgame">重新开始</button>
+    <button class="btn ghost sm icon-btn" data-act="sound" aria-label="声音">${icon(soundOn() ? 'volume-2' : 'volume-x')}</button>
+    <button class="btn ghost sm icon-btn" data-act="newgame" aria-label="重新开始">${icon('rotate-ccw')}<span class="desktop-label">重新开始</span></button>
   </header>
   <main class="layout">
     ${renderProfile(game)}
@@ -379,6 +423,7 @@ function render() {
   if (!g) renderCreate();
   else if (g.retired) renderRetired(g);
   else renderGame(g);
+  requestAnimationFrame(hydrateIcons);
 }
 
 // ================= 弹窗流程 =================

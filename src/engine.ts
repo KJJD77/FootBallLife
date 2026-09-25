@@ -1,7 +1,7 @@
-import { CLUBS, COACH_NAMES, COACH_STYLES, LEAGUES, NATIONS, PARTNER_NAMES, RIVAL_NAMES } from './data';
+import { CLUBS, COACH_NAMES, COACH_STYLES, LEAGUES, NATIONS, PARTNER_NAMES, REAL_ROSTERS, RIVAL_NAMES } from './data';
 import type {
   AttrKey, Attrs, ChanceKind, Club, Coach, Comp, Fixture, Game, LiveOutcome, LivePlan, HighlightType, LogEntry, MatchResult, Nation, Offer,
-  Player, Pos, Role, SeasonStats, TableRow, Trophy, TrophyKind,
+  Player, Pos, Role, SeasonStats, TableRow, Teammate, Trophy, TrophyKind,
 } from './types';
 
 // ---------- 工具函数 ----------
@@ -73,6 +73,26 @@ function newSeason(season: number, clubId: string, youth: boolean): SeasonStats 
   return { season, clubId, apps: 0, goals: 0, assists: 0, leagueGoals: 0, ratingSum: 0, rated: 0, youth };
 }
 
+export function createSquad(clubId: string): Teammate[] {
+  const seeds = REAL_ROSTERS[clubId] ?? Array.from({ length: 6 }, (_, i) => ({
+    name: RIVAL_NAMES[(clubId.length * 3 + i) % RIVAL_NAMES.length],
+    number: [1, 4, 7, 8, 10, 11][i],
+    pos: (['CB', 'CM', 'WG', 'CM', 'AM', 'ST'] as Pos[])[i],
+    nation: 'CHN',
+    ovr: 68 + (5 - i),
+    role: i === 0 ? '队长' : i < 3 ? '主力' : '轮换',
+    note: '训练场上可靠的队友',
+  }));
+  return seeds.map((s, i) => ({
+    ...s,
+    chemistry: ri(58, 86),
+    apps: ri(4, 18),
+    goals: s.pos === 'ST' || s.pos === 'WG' ? ri(1, 8) : ri(0, 3),
+    assists: s.pos === 'AM' || s.pos === 'WG' ? ri(1, 7) : ri(0, 3),
+    note: s.note || (i === 0 ? '更衣室里最有分量的声音' : '训练场上可靠的队友'),
+  }));
+}
+
 function log(g: Game, text: string, kind: LogEntry['kind'] = 'info') {
   g.log.unshift({ y: g.year, m: g.month, text, kind });
   if (g.log.length > 400) g.log.length = 400;
@@ -107,7 +127,7 @@ export function newGame(o: NewGameOpts): Game {
     version: 1, year: 2026, month: 7, player: p, table: [], fixtures: [],
     cupAlive: true, contAlive: false, contGroupPts: 0, cupWon: false, contWon: false,
     plan: { train: 'balanced', life: 'focus' }, log: [], retired: false, offerBoost: 0,
-    coach: { name: '', style: '', desc: '' }, lifeActs: [],
+    coach: { name: '', style: '', desc: '' }, lifeActs: [], squad: createSquad(club.id),
   };
   newCoach(g, false);
   resetTable(g, 0);
@@ -521,6 +541,7 @@ export function acceptOffer(g: Game, off: Offer) {
   p.season = newSeason(seasonOf(g), club.id, false);
   p.clubId = club.id; p.role = off.role; p.coachRel = 55; p.morale += 10; p.fame += club.rep / 25; p.captain = false;
   p.number = rand() < 0.6 ? POS_INFO[p.pos].num : ri(2, 30);
+  g.squad = createSquad(club.id);
   if (club.league !== oldLeague) {
     const played = g.month === 7 ? 0 : 19;
     resetTable(g, played);
@@ -574,6 +595,17 @@ function lifestyle(g: Game, notes: Note[]): number {
   }
 }
 
+function updateSquad(g: Game, results: MatchResult[]) {
+  const played = results.filter(r => r.comp !== 'intl' && r.comp !== 'tour');
+  const wins = played.filter(won).length;
+  g.squad.forEach(teammate => {
+    teammate.apps += played.length ? ri(0, 2) : 0;
+    teammate.chemistry = clamp(teammate.chemistry + (wins ? 1 : -1) + ri(-2, 2), 20, 98);
+    if (teammate.pos === 'ST' || teammate.pos === 'WG') teammate.goals += rand() < 0.25 ? 1 : 0;
+    if (teammate.pos === 'AM' || teammate.pos === 'WG') teammate.assists += rand() < 0.22 ? 1 : 0;
+  });
+}
+
 export function simulateMonth(g: Game, pickEvent: (g: Game) => string | undefined, live?: { idx: number; result: MatchResult }): MonthReport {
   const p = g.player;
   const before = { ...p.attrs }, ovrBefore = ovr(p);
@@ -617,6 +649,7 @@ export function simulateMonth(g: Game, pickEvent: (g: Game) => string | undefine
   if (played.length) { p.coachRel += (avg - 6.6) * 3; p.morale += (avg - 6.7) * 4; }
   else if (!p.injury && p.role !== '青训' && g.fixtures.length) { p.morale -= 4; notes.push({ text: '整个月都坐在板凳上，你有些失落。', kind: 'bad' }); }
   p.fitness += 20 + (p.owned.includes('chef') ? 6 : 0);
+  updateSquad(g, results);
   if (p.fame > 20) p.fame -= 0.25;
   p.morale += (60 - p.morale) * 0.08;
 
@@ -835,6 +868,7 @@ export function migrate(g: Game): Game {
   const p = g.player as Player & Partial<Player>;
   p.partner ??= null; p.kids ??= 0; p.raiseSeason ??= 0; p.talkSeason ??= 0; p.motm ??= 0;
   g.lifeActs ??= [];
+  g.squad ??= createSquad(g.player.clubId);
   if (!g.coach) { g.coach = { name: '', style: '', desc: '' }; newCoach(g, false); }
   return g;
 }
